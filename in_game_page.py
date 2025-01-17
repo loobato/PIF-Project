@@ -49,6 +49,8 @@ def in_game():
                                                                 , on_change=aux.time_played)
                 
         with col1_ovr:
+
+            
             aux.game_timer(comeco, dia)
             st.caption(f"{dia} | {comeco}")
             st.empty()
