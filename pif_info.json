@@ -1,0 +1,61 @@
+{
+    "participantes": {
+        "Enzô": {
+            "id": 1,
+            "pix": "xxxxx",
+            "imagem": "images\\enzo.jpg"
+        },
+        "Ruggeri": {
+            "id": 2,
+            "pix": "xxxxx"
+        },
+        "Franco": {
+            "id": 3,
+            "pix": "xxxxx"
+        },
+        "Lob (participante)": {
+            "id": 4,
+            "pix": "xxxxx",
+            "imagem": "images\\lob (casa).jpg"
+        },
+        "Gelo": {
+            "id": 5,
+            "pix": "xxxxx",
+            "imagem": "images\\gelo.jpg"
+        },
+        "Leandro": {
+            "id": 6,
+            "pix": "xxxxx",
+            "imagem": "images\\leandro.jpg"
+        },
+        "Amato": {
+            "id": 7,
+            "pix": "xxxxx",
+            "imagem": "images\\amato.jpg"
+        },
+        "Mateus": {
+            "id": 8,
+            "pix": "xxxxx"
+        },
+        "Eckert": {
+            "id": 9,
+            "pix": "xxxxx"
+        },
+        "Cado": {
+            "id": 10,
+            "pix": "xxxxx"
+        },
+        "Vini": {
+            "id": 11,
+            "pix": "xxxxx"
+        },
+        "Moni": {
+            "id": 12,
+            "pix": "xxxxx"
+        },
+        "Lob (casa)": {
+            "id": 13,
+            "pix": "xxxxx"
+        }
+    }
+}
