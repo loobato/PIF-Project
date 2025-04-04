@@ -14,16 +14,9 @@ st.image(r"images\ISA (1).png")
 # st.title("Poker Isa Formou App")
 st.markdown("*Um aplicativo feito em parceria pela CASA em collab com Mark Zuckerberg*")
 
-aux.game_status()
+pg = st.navigation([
+    st.Page("game_screen.py", title="Game Screen")
+    , st.Page("scoreboard.py", title="Scoreboard")
+])
 
-if st.session_state["status"] == 'pre':
-    pre_game()
-    
-elif st.session_state["status"] == 'in':
-    in_game()
-
-elif st.session_state["status"] == 'end':
-    end_game()
-
-with st.expander("state"):
-    st.write(st.session_state)
+pg.run()

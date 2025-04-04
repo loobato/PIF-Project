@@ -8,15 +8,15 @@ import datetime as dt
 
 def end_game():
     dia = dt.date.today().strftime("%d/%m/%y")
-    comeco = st.session_state[f'game_{dia}']['start']
-    fim = st.session_state[f'game_{dia}']['finish']
-    tempo = st.session_state[f'game_{dia}']['duration']
-    buyin = st.session_state[f'game_{dia}']['buyin']
-    fichas_iniciais = st.session_state[f'game_{dia}']['fichas']
+    comeco = st.session_state[f'game']['start']
+    fim = st.session_state[f'game']['finish']
+    tempo = st.session_state[f'game']['duration']
+    buyin = st.session_state[f'game']['buyin']
+    fichas_iniciais = st.session_state[f'game']['fichas']
     unitario = buyin / fichas_iniciais 
     
     st.title('Resultados da Pelada')
-    st.markdown(f"*PIF Millions {st.session_state[f'game_{dia}']['fichas']}k - {dia}*")
+    st.markdown(f"*PIF Millions {st.session_state[f'game']['fichas']}k - {dia}*")
     tabela_saldos = aux.game_saldos(dia)
 
     game_overview, podium = st.columns([50, 60], gap='medium')
@@ -77,4 +77,8 @@ def end_game():
         path_playa = f"saves\playa_{dia.replace('/', '')}"
         aux.game_table(dia, comeco, fim, tempo, buyin, fichas_iniciais).to_csv(path_game)
         aux.playa_table(dia).to_csv(path_playa)
+    
+    botao = st.button("Voltar a tela inicial")
+    if botao:
+        st.session_state['status'] = "pre"
         

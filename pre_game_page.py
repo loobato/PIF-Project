@@ -34,7 +34,7 @@ def pre_game():
                                     , value=15
                                     )
             fichas = st.number_input("Fichas iniciais"
-                                    , value=1500
+                                     , value=1500
                                     , step=100
                                     )
 

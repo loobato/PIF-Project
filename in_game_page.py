@@ -9,18 +9,18 @@ from end_game_page import end_game
 
 def in_game():
     dia = dt.date.today().strftime("%d/%m/%y")
-    comeco = st.session_state[f'game_{dia}']['start']
-    buyin = st.session_state[f'game_{dia}']['buyin']
-    stack = st.session_state[f'game_{dia}']['fichas']
+    comeco = st.session_state[f'game']['start']
+    buyin = st.session_state[f'game']['buyin']
+    stack = st.session_state[f'game']['fichas']
     unitario = buyin / stack
 
-    df_game_session = pd.DataFrame({"Players":st.session_state[f'game_{dia}']['players']
-                                    , "BI Pg":[False for i in range(len(st.session_state[f'game_{dia}']['players']))] 
-                                    , f"Rebuys":[0 for i in range(len(st.session_state[f'game_{dia}']['players']))]
-                                    , "RB Pg":[False for i in range(len(st.session_state[f'game_{dia}']['players']))]
-                                    , "Final":[None for i in range(len(st.session_state[f'game_{dia}']['players']))]
+    df_game_session = pd.DataFrame({"Players":st.session_state[f'game']['players']
+                                    , "BI Pg":[False for i in range(len(st.session_state[f'game']['players']))] 
+                                    , f"Rebuys":[0 for i in range(len(st.session_state[f'game']['players']))]
+                                    , "RB Pg":[False for i in range(len(st.session_state[f'game']['players']))]
+                                    , "Final":[None for i in range(len(st.session_state[f'game']['players']))]
                                     })
-    st.header(f":material/poker_chip: PIF Millions {st.session_state[f'game_{dia}']['fichas']}k :material/poker_chip:")
+    st.header(f":material/poker_chip: PIF Millions {st.session_state[f'game']['fichas']}k :material/poker_chip:")
     
     overview = st.container()
 
@@ -48,9 +48,7 @@ def in_game():
                                                                 , key='in_game_changes'
                                                                 , on_change=aux.time_played)
                 
-        with col1_ovr:
-
-            
+        with col1_ovr:            
             aux.game_timer(comeco, dia)
             st.caption(f"{dia} | {comeco}")
             st.empty()
@@ -83,5 +81,6 @@ def in_game():
 
                 if butao:
                     st.session_state['status'] = 'end'
+                    
 
                                     

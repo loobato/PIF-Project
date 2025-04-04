@@ -29,8 +29,8 @@ def game_information(players, buyin, fichas):
     
     """
     data = str(dt.date.today())
-    if f'game_{dt.date.today().strftime("%d/%m/%y")}' not in st.session_state:
-        st.session_state[f'game_{dt.date.today().strftime("%d/%m/%y")}'] = {
+    if f'game' not in st.session_state:
+        st.session_state[f'game'] = {
             "players":players
             , "buyin":buyin
             , "fichas": fichas
@@ -63,13 +63,9 @@ def game_timer(start, dia):
 
     st.title(display)
 
-    if 'stop_watch' in st.session_state:
-        if st.session_state['stop_watch']:
-            rerun = None
-
     if st.session_state['status'] == 'end':
-        st.session_state[f'game_{dia}']['finish'] = dt.datetime.now().strftime("%H:%M:%S")
-        st.session_state[f'game_{dia}']['duration'] = display
+        st.session_state[f'game']['finish'] = dt.datetime.now().strftime("%H:%M:%S")
+        st.session_state[f'game']['duration'] = display
 
 
 
@@ -77,19 +73,12 @@ def time_played():
     """
     Função para puxar o tempo jogado de cada player
     """
-    start = dt.datetime.strptime(st.session_state[f'game_{dt.date.today().strftime("%d/%m/%y")}']['start']
+    start = dt.datetime.strptime(st.session_state[f'game']['start']
                                   , "%H:%M:%S")
     
     if 'time_played' not in st.session_state:
         st.session_state['time_played'] = {x:None 
-                                           for x in st.session_state[f'game_{dt.date.today().strftime("%d/%m/%y")}']['players']} 
-    
-    # if 'stop_watch' in st.session_state:
-    #     if st.session_state['stop_watch']:
-    #         for player, tempo in st.session_state['time_played'].items():
-    #             if tempo is None:
-    #                 st.session_state['time_played'] = st.session_state[f'game_{dt.date.today().strftime("%d/%m/%y")}']['duration']
-    #         return
+                                           for x in st.session_state[f'game']['players']} 
     
     for k, v in st.session_state['in_game_changes']['edited_rows'].items():
         playa = st.session_state['game_data'].loc[int(k), "Players"]
@@ -104,10 +93,10 @@ def trava_end(dia):
     funcao de travar o end game para garantir que todas as fichas em jogo tenha sido saidas
     """
 
-    fichas_iniciais = len(st.session_state[f'game_{dia}']['players'])
+    fichas_iniciais = len(st.session_state[f'game']['players'])
     rebuys = st.session_state['game_data']['Rebuys'].values.sum()
 
-    fichas_totais = (fichas_iniciais + rebuys)*st.session_state[f'game_{dia}']['fichas']
+    fichas_totais = (fichas_iniciais + rebuys)*st.session_state[f'game']['fichas']
     
     # fichas_finais = st.session_state['game_data']['Final'].fillna(0).values.sum()
     fichas_finais = pd.to_numeric(st.session_state['game_data']['Final'], errors='coerce').fillna(0).sum()
@@ -123,8 +112,8 @@ def trava_end(dia):
 
 # END GAME
 def game_saldos(dia):
-    unit = st.session_state[f'game_{dia}']['unitario']
-    df_outputs = pd.DataFrame([], index=st.session_state[f'game_{dia}']['players'])
+    unit = st.session_state[f'game']['unitario']
+    df_outputs = pd.DataFrame([], index=st.session_state[f'game']['players'])
     df = st.session_state['game_data'].copy()
     df = df.set_index(["Players"])
 
@@ -134,10 +123,10 @@ def game_saldos(dia):
     
         pagar = 0
         if not linha["BI Pg"]:
-            pagar += st.session_state[f'game_{dia}']['buyin']
+            pagar += st.session_state[f'game']['buyin']
 
         if not linha["RB Pg"] and linha["Rebuys"] > 0:
-            pagar += linha["Rebuys"]*st.session_state[f'game_{dia}']['buyin']
+            pagar += linha["Rebuys"]*st.session_state[f'game']['buyin']
         else:
             pass
 
@@ -183,7 +172,7 @@ def join_tables(dia):
     if None in st.session_state['time_played'].values():
         for playa, tempo in st.session_state['time_played'].items():
             if tempo is None:
-                st.session_state['time_played'][playa] = st.session_state[f'game_{dia}']['duration']
+                st.session_state['time_played'][playa] = st.session_state[f'game']['duration']
     
     time = pd.DataFrame({"Tempo de Jogo":
                          st.session_state['time_played']})
@@ -211,9 +200,9 @@ def game_table(dia, comeco, fim, tempo, buyin, stack_inicial):
         pandas.DataFrame: no padrão pronto para o banco
     """
     
-    data = st.session_state[f'game_{dt.date.today().strftime("%d/%m/%y")}']['data']
-    participantes = len(st.session_state[f'game_{dia}']['players'])
-    id_jogo = st.session_state[f'game_{dia}']['id_jogo']
+    data = st.session_state[f'game']['data']
+    participantes = len(st.session_state[f'game']['players'])
+    id_jogo = st.session_state[f'game']['id_jogo']
 
     tabela_jogo = pd.DataFrame({"id_jogo":id_jogo
                                 , "data_jogo":data
@@ -241,7 +230,7 @@ def playa_table(dia):
     receber
 
     """
-    id_jogo = st.session_state[f'game_{dia}']['id_jogo']
+    id_jogo = st.session_state[f'game']['id_jogo']
     
     df_playa = join_tables(dia).reset_index()[['Rebuys', 'Fichas Finais', 'Á Pagar', 'Á Receber', 'Saldo', 'Tempo de Jogo', 'Players']]
     df_playa.columns = ['rebuys', 'stack_final', 'pago', 'ganho', 'saldo', 'tempo_jogo', 'player']
@@ -267,3 +256,34 @@ def save_game_to_cloud():
     funcao pra ser acionada e lançar as tabelas geradas pelas funções anteriores para o BQ
     """
     pass
+
+def read_tables(path='saves'):
+    """
+    Puxar os csv da pasta saves para dataframes organizados
+    
+    Parametros:
+        path (str): o caminho da pasta de saves
+    
+    Retorna:
+        games (df): Dataframe com as informações de jogo
+        players (df): Dataframe com as informações dos participantes em cada jogo
+    """
+    import os
+    dir = os.listdir(path)
+
+    games = []
+    players = []
+    for arquivo in dir:
+        if 'game_' in arquivo:
+            path_game = os.path.join(path, arquivo)
+            df = pd.read_csv(path_game)
+            games.append(df)
+        elif "playa_" in arquivo:
+            path_jog = os.path.join(path, arquivo)
+            df = pd.read_csv(path_jog)
+            players.append(df)
+
+    games = pd.concat(games, axis=0)
+    players = pd.concat(players, axis=0)
+
+    return games, players
