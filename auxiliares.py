@@ -286,7 +286,7 @@ def read_tables(path='saves'):
             df = pd.read_csv(path_jog)
             players.append(df)
 
-    games = pd.concat(games, axis=0)
-    players = pd.concat(players, axis=0)
+    games = pd.concat(games, axis=0, ignore_index=True)
+    players = pd.concat(players, axis=0, ignore_index=True)
 
     return games, players
