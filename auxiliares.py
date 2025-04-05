@@ -103,9 +103,12 @@ def trava_end(dia):
 
 
     if fichas_totais != fichas_finais:
-        return f"""Fichas finais informadas não batem com as jogadas
-        \nFichas jogadas: {fichas_totais}
-        \nFichas finais: {fichas_finais}""", True
+        if fichas_totais > fichas_finais:
+            return f"""Fichas finais informadas não batem com as jogadas
+            \nFichas faltantes: {fichas_totais-fichas_finais:.0f}""", True
+        elif fichas_totais < fichas_finais:
+            return f"""Fichas finais informadas não batem com as jogadas
+            \nFichas a mais: {fichas_finais-fichas_totais:.0f}""", True
     else:
         return "Para encerrar o jogo pressione o botão", False
     

@@ -62,7 +62,7 @@ def in_game():
             with col2:
                 st.caption(f'**{stack} fichas**')
                 st.caption(f'**R$ {buyin}**')
-                st.caption(f'**R$ {unitario:.2f}**')
+                st.caption(f'**R$ {unitario:.4f}**')
 
             st.divider()
 

@@ -7,13 +7,16 @@ st.title("Scoreboard P.I.F")
 games, jogadores = aux.read_tables()
 
 jogadores.tempo_jogo = pd.to_timedelta(jogadores.tempo_jogo)
+qtde_jogos = jogadores.player.value_counts()
+tabela_jogador = jogadores.groupby("player").sum()
+tabela_jogador['qtd_jogo'] = qtde_jogos
 # fazer contagem de jogos por jogador
 
 tab_games, tab_players = st.tabs(["Jogos", "Jogadores"])
 
 with tab_games:
     st.dataframe(
-        games
+        games.sort_values("data_jogo")
         , column_config={
             "data_jogo": st.column_config.DateColumn("Data", format="DD/MM/YY")
             , "participantes": st.column_config.NumberColumn("Participantes")
@@ -31,12 +34,14 @@ with tab_games:
             , "tempo"
             , "buyin"
             , "stack_inicial"
-        ))
+        ),
+        hide_index=True)
 
 with tab_players:
-    st.dataframe(jogadores.groupby("player").sum()
+    st.dataframe(tabela_jogador
                  , column_config={
-                     "player": st.column_config.TextColumn("Jogador")
+                     "player": st.column_config.TextColumn("Jogador", width="small")
+                     , "qtd_jogo": st.column_config.NumberColumn("Qnt. Jogos", width="small")
                      , "tempo_jogo": st.column_config.NumberColumn("Tempo de Jogo")
                      , "stack_final": st.column_config.NumberColumn("Stack Total")
                      , "rebuys": st.column_config.NumberColumn("Rebuys")
@@ -46,6 +51,7 @@ with tab_players:
                  }
                  , column_order=(
                      "player"
+                     , "qtd_jogo"
                      , "tempo_jogo"
                      , "stack_final"
                      , "rebuys"

@@ -28,24 +28,24 @@ def pre_game():
 
     with col_gamemode:
         st.markdown(":material/manufacturing: Configurações do Jogo")
-        with st.form('gamemode'):
+        # with st.form('gamemode'):
             
-            buy_in = st.number_input("Buy In"
-                                    , value=15
-                                    )
-            fichas = st.number_input("Fichas iniciais"
-                                     , value=1500
-                                    , step=100
-                                    )
+        buy_in = st.number_input("Buy In"
+                                , value=20
+                                )
+        fichas = st.number_input("Fichas iniciais"
+                                 , value=1500
+                                , step=100
+                                )
 
 
-            if len(online) < 2:
-                st.form_submit_button("Jogar", disabled=True)
-                st.caption("Selecione no mínimo 2 jogadores")
-            else:
-                st.form_submit_button("Jogar"
-                                    , disabled=False
-                                    , on_click=aux.game_information
-                                    , args=(online, buy_in, fichas))
-                st.caption(f"{len(online)} jogadores")
+        if len(online) < 2:
+            st.button("Jogar", disabled=True)
+            st.caption("Selecione no mínimo 2 jogadores")
+        else:
+            st.button("Jogar"
+                                , disabled=False
+                                , on_click=aux.game_information
+                                , args=(online, buy_in, fichas))
+            st.caption(f"{len(online)} jogadores")
         
