@@ -42,8 +42,11 @@ def game_information(players, buyin, fichas):
     st.session_state['status'] = 'in'
 
 
+
+
 def game_status():
     if 'status' not in st.session_state:
+        # CHECAR SE JÁ TEM JOGO AQUI ######################################################################
         st.session_state['status'] = 'pre'
 
 
@@ -159,8 +162,9 @@ def results(podium):
                  caption="1° lugar")
     
     except:
-        st.image(r"images\unknown.jpg",
-                 caption="1° Lugar")
+        # st.image(r"images\unknown.jpg",
+        #          caption="1° Lugar")
+        st.title("A imagem não carregou porra")
 
 
 def join_tables(dia):

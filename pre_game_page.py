@@ -44,8 +44,8 @@ def pre_game():
             st.caption("Selecione no mínimo 2 jogadores")
         else:
             st.button("Jogar"
-                                , disabled=False
-                                , on_click=aux.game_information
-                                , args=(online, buy_in, fichas))
+                      , disabled=False
+                      , on_click=aux.game_information
+                      , args=(online, buy_in, fichas))
             st.caption(f"{len(online)} jogadores")
         
