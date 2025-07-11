@@ -21,6 +21,10 @@ def read_json(jeison):
     
     return dis
 
+def save_json(dis_to_save):
+    with open('game_state.json', 'w') as arquivo:
+        json.dump(dis_to_save, arquivo, indent=4)
+
 
 # PRE GAME
 def game_information(players, buyin, fichas):
@@ -39,6 +43,9 @@ def game_information(players, buyin, fichas):
             , "data": str(dt.date.today())
             , "id_jogo": ''.join(data.split('-'))+f'-{len(players)}'
         }
+    
+    save_json(st.session_state['game'])
+
     st.session_state['status'] = 'in'
 
 

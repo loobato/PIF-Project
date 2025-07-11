@@ -17,6 +17,7 @@ tabela_jogador['qtd_jogo'] = qtde_jogos
 tab_games, tab_players, tab_detail_game = st.tabs(["Jogos", "Jogadores", "Por Jogo"])
 
 with tab_games:
+
     st.dataframe(
         games
         , column_config={
@@ -99,4 +100,3 @@ with tab_detail_game:
                          , "ganho"
                          , "saldo"
                      ))
-
