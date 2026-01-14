@@ -2,7 +2,7 @@ import pandas as pd
 import streamlit as st
 import auxiliares as aux
 
-st.title("Scoreboard P.I.F")
+st.title("Scoreboard P.I.F 2025")
 
 games, jogadores = aux.read_tables()
 
