@@ -1,4 +1,4 @@
-,id_jogo,id_player,player,rebuys,stack_final,tempo jogo,pago,ganho,saldo
+,id_jogo,id_player,player,rebuys,stack_final,tempo_jogo,pago,ganho,saldo
 0,20250722-5,1,Enzô,0,3685.0,4:00:00,15.0,36.85,21.85
 1,20250722-5,18,Gustavo,0,1340.0,4:00:00,15.0,13.4,-1.6
 2,20250722-5,13,Lob (casa),0,2565.0,4:00:00,15.0,25.65,10.65

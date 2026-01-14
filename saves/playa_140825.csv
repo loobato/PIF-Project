@@ -1,4 +1,4 @@
-,id_jogo,id_player,player,rebuys,stack_final,tempo jogo,pago,ganho,saldo
+,id_jogo,id_player,player,rebuys,stack_final,tempo_jogo,pago,ganho,saldo
 0,20250814-8,9,Eckert,0,0.0,4:00:00,15.0,0.0,-15.0
 1,20250814-8,1,Enzô,0,2800.0,4:00:00,15.0,28.0,13.0
 2,20250814-8,3,Franco,1,4305.0,4:00:00,30.0,43.05,13.05
