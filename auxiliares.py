@@ -27,7 +27,11 @@ def save_json(dis_to_save):
 
 
 # PRE GAME
-def game_information(players, buyin, fichas):
+def game_information(players
+                     , buyin
+                     , fichas
+                     , save=True
+                     , inputed_game=False):
     """
     Gera 
     
@@ -44,9 +48,10 @@ def game_information(players, buyin, fichas):
             , "id_jogo": ''.join(data.split('-'))+f'-{len(players)}'
         }
     
-    save_json(st.session_state['game'])
-
-    st.session_state['status'] = 'in'
+    if save:
+        save_json(st.session_state['game'])
+    if not inputed_game:
+        st.session_state['status'] = 'in'
 
 
 

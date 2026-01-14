@@ -17,6 +17,7 @@ st.markdown("*Um aplicativo feito em parceria pela CASA em collab com Mark Zucke
 pg = st.navigation([
     st.Page("game_screen.py", title="Game Screen")
     , st.Page("scoreboard.py", title="Scoreboard")
+    , st.Page("input_game_scores.py", title="Inputar Jogo")
 ])
 
 pg.run()

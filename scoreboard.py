@@ -18,6 +18,13 @@ tab_games, tab_players, tab_detail_game = st.tabs(["Jogos", "Jogadores", "Por Jo
 
 with tab_games:
 
+    select = st.segmented_control(""
+                         , label_visibility='hidden'
+                         , options=[ 
+                            ":material/arrow_back_ios:"
+                            , ":material/arrow_forward_ios:"
+                         ])
+
     st.dataframe(
         games
         , column_config={

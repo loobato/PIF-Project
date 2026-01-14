@@ -73,8 +73,8 @@ def end_game():
         save = st.button("Salvar resultados")
 
     if save:
-        path_game = f"saves\game_{dia.replace('/', '')}"
-        path_playa = f"saves\playa_{dia.replace('/', '')}"
+        path_game = f"saves\game_{dia.replace('/', '')}.csv"
+        path_playa = f"saves\playa_{dia.replace('/', '')}.csv"
         aux.game_table(dia, comeco, fim, tempo, buyin, fichas_iniciais).to_csv(path_game)
         aux.playa_table(dia).to_csv(path_playa)
     
