@@ -1,4 +1,4 @@
-,id_jogo,id_player,player,rebuys,stack_final,tempo jogo,pago,ganho,saldo
+,id_jogo,id_player,player,rebuys,stack_final,tempo_jogo,pago,ganho,saldo
 0,20251212-10,13,Lob (casa),1,1820.0,4:00:00,60.0,36.4,-23.6
 1,20251212-10,1,Enzô,0,4035.0,4:00:00,30.0,80.7,50.7
 2,20251212-10,6,Leandro,0,0.0,4:00:00,30.0,0.0,-30.0
