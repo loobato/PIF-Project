@@ -1,8 +1,17 @@
 import json
+import sys
+from pathlib import Path
+
+# Ensure project root is on path so 'support' resolves when running streamlit run app/homepage.py
+_root = Path(__file__).resolve().parent.parent
+if str(_root) not in sys.path:
+    sys.path.insert(0, str(_root))
+
 import numpy as np
 import pandas as pd
 import streamlit as st
 import support.auxiliares as aux
+from support.gcp_config import Database
 from game.pre_game_page import pre_game
 from game.in_game_page import in_game
 from game.end_game_page import end_game
@@ -13,6 +22,9 @@ st.image("https://raw.githubusercontent.com/loobato/PIF-Project/refs/heads/main/
 
 # st.title("Poker Isa Formou App")
 st.markdown("*Um aplicativo feito em parceria pela CASA em collab com Mark Zuckerberg*")
+
+if "db" not in st.session_state:
+    st.session_state["db"] = Database(default_client="firebase")
 
 pg = st.navigation([
     st.Page(r"game/game_screen.py", title="Game Screen")

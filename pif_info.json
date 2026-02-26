@@ -76,6 +76,26 @@
         "Gustavo": {
             "id": 18,
             "pix": "xxxxx"
+        },
+        "Bruno": {
+            "id": 19,
+            "pix": "xxxxx"
+        },
+        "Leonardo": {
+            "id": 20,
+            "pix": "xxxxx"
+        },
+        "Enzo 2": {
+            "id": 21,
+            "pix": "xxxxx"
+        },
+        "Nicolas": {
+            "id": 22,
+            "pix": "xxxxx"
+        },
+        "Zito": {
+            "id": 23,
+            "pix": "xxxxx"
         }
     }
 }
