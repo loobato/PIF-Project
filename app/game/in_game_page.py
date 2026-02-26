@@ -2,9 +2,9 @@ import json
 import numpy as np
 import pandas as pd
 import streamlit as st
-import auxiliares as aux
+import support.auxiliares as aux
 import datetime as dt
-from end_game_page import end_game
+from game.end_game_page import end_game
 
 
 def in_game():
@@ -83,6 +83,6 @@ def in_game():
 
                 if butao:
                     st.session_state['status'] = 'end'
-                    
+                
 
                                     

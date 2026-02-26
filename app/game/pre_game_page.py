@@ -2,7 +2,7 @@ import json
 import numpy as np
 import pandas as pd
 import streamlit as st
-import auxiliares as aux
+import support.auxiliares as aux
 
 def pre_game():
 
