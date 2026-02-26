@@ -1,7 +1,10 @@
 2024
 .streamlit/secrets.toml
 sandbox.ipynb
-venv
+
+venv/
+.venv/
+env/
 
 # Python
 __pycache__/
