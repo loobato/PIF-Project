@@ -16,6 +16,7 @@ def dataset():
 def game_table():
     schema = [
         bigquery.SchemaField('id_jogo', 'STRING', mode='REQUIRED')
+        , bigquery.SchemaField('nome_jogo', 'STRING', mode='NULLABLE')
         , bigquery.SchemaField('data_jogo', 'DATE', mode='NULLABLE')
         , bigquery.SchemaField('participantes', 'INT64', mode='NULLABLE')
         , bigquery.SchemaField('inicio', 'STRING', mode='NULLABLE')

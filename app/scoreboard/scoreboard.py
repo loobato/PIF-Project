@@ -1,6 +1,6 @@
 import pandas as pd
 import streamlit as st
-import app.auxiliares as aux
+import support.auxiliares as aux
 
 st.title("Scoreboard P.I.F 2025")
 
