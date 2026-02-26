@@ -36,17 +36,19 @@ def in_game():
                     """,unsafe_allow_html=True)
         
         with col2_ovr:
-            if 'game data' not in st.session_state:
-                st.session_state['game_data'] = st.data_editor(df_game_session,
-                                                                column_config={
-                                                                    "BI Pg":st.column_config.CheckboxColumn()
-                                                                    , "RB Pg":st.column_config.CheckboxColumn()
-                                                                    , "Rebuys":st.column_config.NumberColumn(step=1)
-                                                                    , "Final":st.column_config.NumberColumn()
-                                                                }
-                                                                , hide_index=True
-                                                                , key='in_game_changes'
-                                                                , on_change=aux.time_played)
+            df_to_show = st.session_state.get("game_data", df_game_session)
+            st.session_state["game_data"] = st.data_editor(
+                df_to_show,
+                column_config={
+                    "BI Pg": st.column_config.CheckboxColumn(),
+                    "RB Pg": st.column_config.CheckboxColumn(),
+                    "Rebuys": st.column_config.NumberColumn(step=1),
+                    "Final": st.column_config.NumberColumn(),
+                },
+                hide_index=True,
+                key="in_game_changes",
+                on_change=aux.on_in_game_data_change,
+            )
                 
         with col1_ovr:            
             aux.game_timer(comeco, dia)
