@@ -2,10 +2,10 @@ import json
 import numpy as np
 import pandas as pd
 import streamlit as st
-import auxiliares as aux
-from pre_game_page import pre_game
-from in_game_page import in_game
-from end_game_page import end_game
+import support.auxiliares as aux
+from game.pre_game_page import pre_game
+from game.in_game_page import in_game
+from game.end_game_page import end_game
 
 aux.game_status()
 
