@@ -9,6 +9,9 @@ import streamlit as st
 from google.oauth2 import service_account
 from google.cloud import firestore
 
+
+# AVALIAR DE REFATORAR E MANDAR ISSO PRA UMA CLASSE
+# EM GCP_CONFIG QUE CONECTE MAIS FACILMENTE O BQ E FIREBASE
 # Cliente Firestore (persistência em nuvem)
 try:
     _credentials = service_account.Credentials.from_service_account_info(st.secrets["gcp_service_account"])
@@ -380,12 +383,16 @@ def game_table(dia, comeco, fim, tempo, buyin, stack_inicial):
     Returns:
         pandas.DataFrame: no padrão pronto para o banco
     """
+
+    ## AQUI VAI PRECISAR RECEBER O NOME DO JOGO
     
     data = st.session_state[f'game']['data']
     participantes = len(st.session_state[f'game']['players'])
     id_jogo = st.session_state[f'game']['id_jogo']
+    nome_jogo = st.session_state['nome_jogo']
 
     tabela_jogo = pd.DataFrame({"id_jogo":id_jogo
+                                , 'nome_jogo': nome_jogo
                                 , "data_jogo":data
                                 , "participantes":participantes
                                 , "inicio":comeco

@@ -15,24 +15,33 @@ def end_game():
     fichas_iniciais = st.session_state[f'game']['fichas']
     unitario = buyin / fichas_iniciais 
     
+
     st.title('Resultados da Pelada')
-    st.markdown(f"*PIF Millions {st.session_state[f'game']['fichas']}k - {dia}*")
     tabela_saldos = aux.game_saldos(dia)
 
-
+    #######################################
     game_data = aux.prepare_for_firestore(aux.game_table(dia, comeco, fim, tempo, buyin, fichas_iniciais))
     playa_data = aux.prepare_for_firestore(aux.playa_table(dia))
 
     # st.write(game_data)
     # st.write(playa_data)
 
+    # SALVA O JOGO NO BANCO - AVALIAR MUDAR PRA SALVAR NO BQ]
+    # TEM QUE TIRAR DAQUI PARA CONTEMPLAR O NOME DO JOGO
     aux.save_game_to_firestore(str(st.session_state[f'game']['id_jogo']), game_data, playa_data)
+    #######################################################
 
     game_overview, podium = st.columns([50, 60], gap='medium')
 
     with game_overview:
         with st.container():
 
+            st.text_input(
+                "nome_do_jogo"
+                , value=f"*PIF Millions {st.session_state[f'game']['fichas']}k - {dia}*"
+                , key='nome_jogo'
+                , label_visibility='hidden')
+            
             st.markdown("""
                         <style>
                         [data-testid=stColumn]:nth-of-type(1) [data-testid=stVerticalBlock]{
