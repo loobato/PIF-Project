@@ -1,9 +1,168 @@
 #%%
 import json
+import os
+import uuid
 import numpy as np
 import pandas as pd
 import datetime as dt
 import streamlit as st
+from google.oauth2 import service_account
+from google.cloud import firestore
+
+# Cliente Firestore (persistência em nuvem)
+try:
+    _credentials = service_account.Credentials.from_service_account_info(st.secrets["gcp_service_account"])
+    db = firestore.Client(project="dw-fin", credentials=_credentials)
+except Exception:
+    db = None
+
+# Coleção de jogos ativos
+POKER_GAMES_COLLECTION = "poker_games"
+PIF_GAMES = "games"
+PIF_PLAYERS = "players_results"
+
+
+def save_game_state():
+    """Salva o estado atual do jogo no Firestore usando o ID do jogo como documento."""
+    if db is None or "game" not in st.session_state:
+        return
+    game_id = str(st.session_state["game"]["id_jogo"])
+    game_data = st.session_state.get("game_data")
+    game_data_dict = game_data.to_dict() if game_data is not None and hasattr(game_data, "to_dict") else {}
+    data = {
+        "game": st.session_state["game"],
+        "status": st.session_state.get("status"),
+        "game_data": game_data_dict,
+        "time_played": st.session_state.get("time_played"),
+        "updated_at": firestore.SERVER_TIMESTAMP,
+    }
+
+    data = prepare_for_firestore(data)
+
+    db.collection(POKER_GAMES_COLLECTION).document(game_id).set(data)
+
+def save_game_to_firestore(game_id, game_data, playa_data):
+    game_data = prepare_for_firestore(game_data)
+    playa_data = prepare_for_firestore(playa_data)
+
+    db.collection(PIF_GAMES).document(game_id).set(game_data)
+    db.collection(PIF_PLAYERS).document(game_id).set(playa_data)
+    set_game_finalizado_firestore()
+
+
+def _firestore_safe_key(key):
+    """Garante que a chave seja string não vazia (exigência do Firestore)."""
+    s = str(key).strip() if key is not None else ""
+    return s if s else "_empty"
+
+
+def prepare_for_firestore(data):
+    """
+    Transforma os dados para tipos aceitos pelo Firestore, evitando
+    ValueError: One or more components is not a string or is empty.
+    - Chaves de dict devem ser strings não vazias.
+    - NaN/None/NA viram None (null).
+    - Tipos numpy/pandas viram tipos nativos Python.
+    """
+
+    # Sentinel do Firestore: não alterar
+    if hasattr(firestore, "SERVER_TIMESTAMP") and data is firestore.SERVER_TIMESTAMP:
+        return data
+
+    if data is None:
+        return None
+
+    # DataFrames e Series: convertemos para dict antes de seguir,
+    # preservando a estrutura que já é usada no restante do código.
+    if isinstance(data, pd.DataFrame):
+        return prepare_for_firestore(data.to_dict())
+    if isinstance(data, pd.Series):
+        return prepare_for_firestore(data.to_dict())
+
+    if isinstance(data, dict):
+        return {
+            _firestore_safe_key(k): prepare_for_firestore(v)
+            for k, v in data.items()
+        }
+    if isinstance(data, (list, tuple)) or (hasattr(np, "ndarray") and isinstance(data, np.ndarray)):
+        return [prepare_for_firestore(i) for i in data]
+
+    # Escalares numpy/pandas
+    if hasattr(np, "integer") and isinstance(data, np.integer):
+        return int(data)
+    if hasattr(np, "floating") and isinstance(data, np.floating):
+        if np.isnan(data):
+            return None
+        return float(data)
+    if hasattr(np, "bool_") and isinstance(data, np.bool_):
+        return bool(data)
+    if isinstance(data, (np.ndarray,)):
+        return [prepare_for_firestore(x) for x in data.tolist()]
+
+    # NaN / NA (Pandas e float)
+    try:
+        if hasattr(pd, "NA") and data is pd.NA:
+            return None
+        if isinstance(data, float) and np.isnan(data):
+            return None
+    except (TypeError, ValueError):
+        pass
+
+    # Datetime: Firestore aceita datetime; serializar como string evita problemas
+    if isinstance(data, (dt.datetime, dt.date)):
+        return data.isoformat() if hasattr(data, "isoformat") else str(data)
+
+    if isinstance(data, (str, int, float, bool)):
+        if isinstance(data, float) and np.isnan(data):
+            return None
+        return data
+
+    # UUID ou outro objeto: string
+    return str(data)
+
+def load_last_game_firestore(game_id):
+    """Busca um jogo específico no Firestore e carrega no session_state."""
+    if db is None:
+        return
+    doc_ref = db.collection(POKER_GAMES_COLLECTION).document(str(game_id))
+    doc = doc_ref.get()
+    if not doc.exists:
+        return
+    data = doc.to_dict()
+    st.session_state["game"] = data.get("game")
+    st.session_state["status"] = data.get("status")
+    if data.get("game_data"):
+        st.session_state["game_data"] = pd.DataFrame(data["game_data"])
+    if data.get("time_played") is not None:
+        st.session_state["time_played"] = data["time_played"]
+
+
+def load_game_state():
+    """Tenta carregar um jogo ativo (não finalizado) do Firestore ao iniciar a sessão."""
+    if db is None or "status" in st.session_state:
+        return
+    query = db.collection(POKER_GAMES_COLLECTION).where("status", "in", ["in", "end"]).limit(1)
+    docs = list(query.stream())
+    if not docs:
+        return
+    doc = docs[0]
+    load_last_game_firestore(doc.id)
+
+
+def set_game_finalizado_firestore():
+    """Atualiza o status do documento do jogo atual para 'finalizado' no Firestore."""
+    if db is None or "game" not in st.session_state:
+        return print("\n\n\nNão foi possível atualizar o status do jogo\n\n\n")
+    try:
+        game_id = str(st.session_state["game"]["id_jogo"])
+        db.collection(POKER_GAMES_COLLECTION).document(game_id).update({"status": "finalizado"})
+    except Exception:
+        pass
+
+
+def delete_game_state():
+    """Compatibilidade: marca o jogo como finalizado no Firestore em vez de deletar."""
+    set_game_finalizado_firestore()
 
 # AUX GERAIS
 def read_json(jeison):
@@ -33,33 +192,33 @@ def game_information(players
                      , save=True
                      , inputed_game=False):
     """
-    Gera 
-    
+    Gera as informações do jogo e opcionalmente persiste no Firestore.
     """
-    data = str(dt.date.today())
-    if f'game' not in st.session_state:
-        st.session_state[f'game'] = {
-            "players":players
-            , "buyin":buyin
-            , "fichas": fichas
-            , 'unitario':buyin/fichas
-            , "start": dt.datetime.now().strftime("%H:%M:%S")
-            , "data": str(dt.date.today())
-            , "id_jogo": ''.join(data.split('-'))+f'-{len(players)}'
-        }
-    
-    if save:
-        save_json(st.session_state['game'])
+    dis_jogo = {
+        "id_jogo": str(uuid.uuid4()),
+        "players": players,
+        "buyin": buyin,
+        "fichas": fichas,
+        "unitario": buyin / fichas,
+        "start": dt.datetime.now().strftime("%H:%M:%S"),
+        "data": str(dt.date.today()),
+    }
+    if "game" not in st.session_state:
+        st.session_state["game"] = dis_jogo
+    elif 'game' in st.session_state and st.session_state["game"] == {}:
+        st.session_state["game"] = dis_jogo
     if not inputed_game:
-        st.session_state['status'] = 'in'
+        st.session_state["status"] = "in"
+    if save:
+        save_game_state()
 
 
 
 
 def game_status():
-    if 'status' not in st.session_state:
-        # CHECAR SE JÁ TEM JOGO AQUI ######################################################################
-        st.session_state['status'] = 'pre'
+    load_game_state()
+    if "status" not in st.session_state:
+        st.session_state["status"] = "pre"
 
 
 # IN GAME
@@ -88,19 +247,22 @@ def time_played():
     """
     Função para puxar o tempo jogado de cada player
     """
-    start = dt.datetime.strptime(st.session_state[f'game']['start']
-                                  , "%H:%M:%S")
-    
-    if 'time_played' not in st.session_state:
-        st.session_state['time_played'] = {x:None 
-                                           for x in st.session_state[f'game']['players']} 
-    
-    for k, v in st.session_state['in_game_changes']['edited_rows'].items():
-        playa = st.session_state['game_data'].loc[int(k), "Players"]
-        if "Final" in v.keys() and st.session_state['time_played'][playa] is None:
+    start = dt.datetime.strptime(st.session_state["game"]["start"], "%H:%M:%S")
+    if "time_played" not in st.session_state:
+        st.session_state["time_played"] = {x: None for x in st.session_state["game"]["players"]}
+    changes = st.session_state.get("in_game_changes") or {}
+    for k, v in changes.get("edited_rows", {}).items():
+        playa = st.session_state["game_data"].loc[int(k), "Players"]
+        if "Final" in v.keys() and st.session_state["time_played"][playa] is None:
             f = dt.datetime.now()
             match_time = f - start
-            st.session_state['time_played'][playa] = str(match_time).split(",")[1].split(".")[0]
+            st.session_state["time_played"][playa] = str(match_time).split(",")[1].split(".")[0]
+
+
+def on_in_game_data_change():
+    """Callback do data_editor: atualiza tempo jogado e persiste o estado."""
+    time_played()
+    save_game_state()
 
 
 def trava_end(dia):
@@ -251,8 +413,11 @@ def playa_table(dia):
     """
     id_jogo = st.session_state[f'game']['id_jogo']
     
-    df_playa = join_tables(dia).reset_index()[['Rebuys', 'Fichas Finais', 'Á Pagar', 'Á Receber', 'Saldo', 'Tempo de Jogo', 'Players']]
-    df_playa.columns = ['rebuys', 'stack_final', 'pago', 'ganho', 'saldo', 'tempo_jogo', 'player']
+    print("\n\n\n")
+    print(join_tables(dia).reset_index())
+    print("\n\n\n")
+    df_playa = join_tables(dia).reset_index()
+    df_playa.columns = ['player', 'rebuys', 'stack_final', 'pago', 'ganho', 'saldo', 'tempo_jogo']
     df_playa['id_jogo'] = [id_jogo for i in range(len(df_playa.index))]
     df_playa['id_player'] = [read_json('pif_info.json')['participantes'][x]['id']
                              for x in df_playa.player.values]

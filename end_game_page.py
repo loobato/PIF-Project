@@ -19,6 +19,15 @@ def end_game():
     st.markdown(f"*PIF Millions {st.session_state[f'game']['fichas']}k - {dia}*")
     tabela_saldos = aux.game_saldos(dia)
 
+
+    game_data = aux.prepare_for_firestore(aux.game_table(dia, comeco, fim, tempo, buyin, fichas_iniciais))
+    playa_data = aux.prepare_for_firestore(aux.playa_table(dia))
+
+    # st.write(game_data)
+    # st.write(playa_data)
+
+    aux.save_game_to_firestore(str(st.session_state[f'game']['id_jogo']), game_data, playa_data)
+
     game_overview, podium = st.columns([50, 60], gap='medium')
 
     with game_overview:
@@ -45,7 +54,7 @@ def end_game():
             with col2:
                 st.caption(f'**{fichas_iniciais} fichas**')
                 st.caption(f'**R$ {buyin}**')
-                st.caption(f'**R$ {unitario:.2f}**')
+                st.caption(f'**R$ {round(unitario, 3)}**')
 
         st.divider()
     
@@ -62,6 +71,7 @@ def end_game():
         aux.results(pod)
         st.balloons()
     
+    # EXPANDER DOS RESULTADOS DO JOGO
     with st.expander("Resultados do Jogo"):
         st.dataframe(aux.join_tables(dia)
                      , column_config={
@@ -78,7 +88,9 @@ def end_game():
         aux.game_table(dia, comeco, fim, tempo, buyin, fichas_iniciais).to_csv(path_game)
         aux.playa_table(dia).to_csv(path_playa)
     
+    aux.delete_game_state()
     botao = st.button("Voltar a tela inicial")
     if botao:
-        st.session_state['status'] = "pre"
+        st.session_state["status"] = "pre"
+        st.session_state['game'] = {}
         

@@ -7,6 +7,8 @@ credentials = service_account.Credentials.from_service_account_info(st.secrets["
 client = bigquery.Client(project="dw-fin", 
                          credentials=credentials)
 
+
+
 def dataset():
     dataset = bigquery.Dataset("dw-fin.pif_project")
     client.create_dataset(dataset)
