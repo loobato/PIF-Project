@@ -209,6 +209,7 @@ def game_information(players
         st.session_state["status"] = "in"
     if save:
         save_game_state()
+    
 
 
 
