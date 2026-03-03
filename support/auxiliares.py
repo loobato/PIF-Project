@@ -162,11 +162,6 @@ def set_game_finalizado_firestore():
     except Exception:
         pass
 
-
-def delete_game_state():
-    """Compatibilidade: marca o jogo como finalizado no Firestore em vez de deletar."""
-    set_game_finalizado_firestore()
-
 # AUX GERAIS
 def read_json(jeison):
     """
@@ -214,6 +209,7 @@ def game_information(players
         st.session_state["status"] = "in"
     if save:
         save_game_state()
+    
 
 
 

@@ -19,17 +19,6 @@ def end_game():
     st.title('Resultados da Pelada')
     tabela_saldos = aux.game_saldos(dia)
 
-    #######################################
-    game_data = aux.prepare_for_firestore(aux.game_table(dia, comeco, fim, tempo, buyin, fichas_iniciais))
-    playa_data = aux.prepare_for_firestore(aux.playa_table(dia))
-
-    # st.write(game_data)
-    # st.write(playa_data)
-
-    # SALVA O JOGO NO BANCO - AVALIAR MUDAR PRA SALVAR NO BQ]
-    # TEM QUE TIRAR DAQUI PARA CONTEMPLAR O NOME DO JOGO
-    aux.save_game_to_firestore(str(st.session_state[f'game']['id_jogo']), game_data, playa_data)
-    #######################################################
 
     game_overview, podium = st.columns([50, 60], gap='medium')
 
@@ -79,7 +68,20 @@ def end_game():
 
         aux.results(pod)
         st.balloons()
+
+    #######################################
+    game_data = aux.prepare_for_firestore(aux.game_table(dia, comeco, fim, tempo, buyin, fichas_iniciais))
+    playa_data = aux.prepare_for_firestore(aux.playa_table(dia))
+
+    # st.write(game_data)
+    # st.write(playa_data)
+
+    # SALVA O JOGO NO BANCO - AVALIAR MUDAR PRA SALVAR NO BQ]
+    # TEM QUE TIRAR DAQUI PARA CONTEMPLAR O NOME DO JOGO
+    aux.save_game_to_firestore(str(st.session_state[f'game']['id_jogo']), game_data, playa_data)
+    #######################################################
     
+    aux.set_game_finalizado_firestore()
     # EXPANDER DOS RESULTADOS DO JOGO
     with st.expander("Resultados do Jogo"):
         st.dataframe(aux.join_tables(dia)
@@ -97,7 +99,6 @@ def end_game():
         aux.game_table(dia, comeco, fim, tempo, buyin, fichas_iniciais).to_csv(path_game)
         aux.playa_table(dia).to_csv(path_playa)
     
-    aux.delete_game_state()
     botao = st.button("Voltar a tela inicial")
     if botao:
         st.session_state["status"] = "pre"

@@ -49,6 +49,7 @@ def in_game():
                 key="in_game_changes",
                 on_change=aux.on_in_game_data_change,
             )
+        
                 
         with col1_ovr:            
             aux.game_timer(comeco, dia)

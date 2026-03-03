@@ -1,8 +1,13 @@
-import json
+import sys
+import os
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 import numpy as np
 import pandas as pd
 import streamlit as st
 import support.auxiliares as aux
+from support.gcp_config import Database
 from game.pre_game_page import pre_game
 from game.in_game_page import in_game
 from game.end_game_page import end_game
@@ -13,6 +18,9 @@ st.image("https://raw.githubusercontent.com/loobato/PIF-Project/refs/heads/main/
 
 # st.title("Poker Isa Formou App")
 st.markdown("*Um aplicativo feito em parceria pela CASA em collab com Mark Zuckerberg*")
+
+if "db" not in st.session_state:
+    st.session_state["db"] = Database(default_client="firebase")
 
 pg = st.navigation([
     st.Page(r"game/game_screen.py", title="Game Screen")
