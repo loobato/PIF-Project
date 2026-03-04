@@ -86,16 +86,30 @@ class Database:
 
         if isinstance(data, pd.DataFrame):
             # Convert DataFrame rows to JSON records to avoid pyarrow dtype issues
+            # print("\n########################\n")
+            # print(data)
+            # print("\n########################\n")
+            
             records = data.to_dict(orient="records")
-            errors = self.bq.insert_rows_json(resource, records)
+            # print("\n########################\n")
+            # print(records)
+            # print("\n########################\n")
+            
+            errors = self.bq.insert_rows_json(table=resource, json_rows=records)
             if errors:
+                # print("\n########################\n")
+                # print(data)
+                # print(records)
+                # print("\n########################\n")
                 raise RuntimeError(f"BigQuery insert errors: {errors}")
             return True
 
-        if isinstance(data, dict):
-            data = [data]
         if isinstance(data, list):
-            errors = self.bq.insert_rows_json(resource, data)
+            print("\n########################\n")
+            print(data)
+            print(resource)
+            print("\n########################\n")
+            errors = self.bq.insert_rows_json(table=resource, json_rows=data)
             if errors:
                 raise RuntimeError(f"BigQuery insert errors: {errors}")
             return True
@@ -143,10 +157,23 @@ class Database:
             raise ValueError("BigQuery update requires a non-empty WHERE clause in identifier.")
         if not data:
             return True
+        
+        params = [bigquery.ScalarQueryParameter(k, _bq_param_type(v), v) for k, v in data.items()]
+
+        if "id_jogo=" in where:
+            # Extraímos o valor entre aspas ou puro
+            raw_id = where.split("=")[1].replace("'", "").replace('"', "")
+            where_clause = "id_jogo = @where_id"
+            params.append(bigquery.ScalarQueryParameter("where_id", "STRING", raw_id))
+        else:
+            where_clause = where
+
 
         set_expr = ", ".join([f"`{k}` = @{k}" for k in data.keys()])
-        sql = f"UPDATE `{resource}` SET {set_expr} WHERE {where}"
-        params = [bigquery.ScalarQueryParameter(k, _bq_param_type(v), v) for k, v in data.items()]
+        sql = f"UPDATE `{resource}` SET {set_expr} WHERE {where_clause}"
+        print("\n#########")
+        print(sql)
+        print("\n#########")
         job_config = bigquery.QueryJobConfig(query_parameters=params)
         job = self.bq.query(sql, job_config=job_config)
         job.result()

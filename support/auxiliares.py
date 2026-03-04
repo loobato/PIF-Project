@@ -9,6 +9,8 @@ import streamlit as st
 from google.oauth2 import service_account
 from google.cloud import firestore
 
+from support.gcp_config import Database
+
 
 # AVALIAR DE REFATORAR E MANDAR ISSO PRA UMA CLASSE
 # EM GCP_CONFIG QUE CONECTE MAIS FACILMENTE O BQ E FIREBASE
@@ -23,6 +25,32 @@ except Exception:
 POKER_GAMES_COLLECTION = "poker_games"
 PIF_GAMES = "games"
 PIF_PLAYERS = "players_results"
+
+# BigQuery table IDs for finished games
+BQ_GAMES_TABLE = 'dw-fin.pif_project.game_table'
+BQ_PLAYERS_TABLE = 'dw-fin.pif_project.players_table'
+
+
+def _dict_to_bq_rows(data):
+    """
+    Convert Firestore-prepared dict (column -> index -> value) to list of row dicts
+    for BigQuery insert. Also accepts a single row dict or a DataFrame.
+    """
+    if data is None:
+        return []
+    if isinstance(data, pd.DataFrame):
+        return data.to_dict(orient="records")
+    if isinstance(data, dict):
+        # Firestore format: {"col": {0: v0, 1: v1}, ...} or flat {"col": v}
+        first_key = next(iter(data.keys()), None)
+        if first_key is None:
+            return []
+        first_val = data[first_key]
+        if isinstance(first_val, dict):
+            n_rows = len(first_val)
+            return [{k: data[k].get(i) for k in data.keys()} for i in range(n_rows)]
+        return [data]
+    return []
 
 
 def save_game_state():
@@ -45,12 +73,30 @@ def save_game_state():
     db.collection(POKER_GAMES_COLLECTION).document(game_id).set(data)
 
 def save_game_to_firestore(game_id, game_data, playa_data):
-    game_data = prepare_for_firestore(game_data)
-    playa_data = prepare_for_firestore(playa_data)
+    """
+    Save finished game to BigQuery: games_table and players_table.
+    Also marks the active game as finalizado in Firestore.
+    game_data and playa_data can be DataFrames or Firestore-prepared dicts.
+    # """
+    # game_data = prepare_for_firestore(game_data)
+    # playa_data = prepare_for_firestore(playa_data)
+    # print(game_data)
+    # print(playa_data)
+    print(game_data)
+    print(playa_data)
+    try:
+        bq = Database(default_client="bq")
+        bq.create(BQ_GAMES_TABLE, game_data)
+        bq.create(BQ_PLAYERS_TABLE, playa_data)
+    except Exception as e:
+        print(e)
+        if db is not None:
+            print(f"\n\n\nBigQuery save failed: {e}\n\n\n")
+        raise
 
-    db.collection(PIF_GAMES).document(game_id).set(game_data)
-    db.collection(PIF_PLAYERS).document(game_id).set(playa_data)
     set_game_finalizado_firestore()
+    if 'saved_to_bq' not in st.session_state:
+        st.session_state['saved_to_bq'] = True
 
 
 def _firestore_safe_key(key):
@@ -58,6 +104,18 @@ def _firestore_safe_key(key):
     s = str(key).strip() if key is not None else ""
     return s if s else "_empty"
 
+def update_game_name(game_id, game_name):
+    """Atualiza o nome do jogo no Firestore usando o ID do jogo como documento."""
+    if db is None or "game" not in st.session_state:
+        return
+
+    bq = Database(default_client="bq")
+    bq.update(BQ_GAMES_TABLE,
+     identifier=f"id_jogo='{game_id}'",
+     data={"nome_jogo": game_name}
+     )
+
+    # db.collection(POKER_GAMES_COLLECTION).document(game_id).update({"nome_jogo": game_name})
 
 def prepare_for_firestore(data):
     """
@@ -251,8 +309,20 @@ def time_played():
         st.session_state["time_played"] = {x: None for x in st.session_state["game"]["players"]}
     changes = st.session_state.get("in_game_changes") or {}
     for k, v in changes.get("edited_rows", {}).items():
-        playa = st.session_state["game_data"].loc[int(k), "Players"]
-        if "Final" in v.keys() and st.session_state["time_played"][playa] is None:
+        try:
+            row_pos = int(k)
+        except (TypeError, ValueError):
+            continue
+
+        # Streamlit's edited_rows uses row *positions*, not DataFrame index labels.
+        df = st.session_state.get("game_data")
+        if df is None or "Players" not in df.columns:
+            continue
+        if row_pos < 0 or row_pos >= len(df.index):
+            continue
+
+        playa = df.iloc[row_pos]["Players"]
+        if "Final" in v.keys() and st.session_state["time_played"].get(playa) is None:
             f = dt.datetime.now()
             match_time = f - start
             st.session_state["time_played"][playa] = str(match_time).split(",")[1].split(".")[0]
@@ -416,14 +486,13 @@ def playa_table(dia):
     """
     id_jogo = st.session_state[f'game']['id_jogo']
     
-    print("\n\n\n")
-    print(join_tables(dia).reset_index())
-    print("\n\n\n")
     df_playa = join_tables(dia).reset_index()
     df_playa.columns = ['player', 'rebuys', 'stack_final', 'pago', 'ganho', 'saldo', 'tempo_jogo']
     df_playa['id_jogo'] = [id_jogo for i in range(len(df_playa.index))]
     df_playa['id_player'] = [read_json('pif_info.json')['participantes'][x]['id']
                              for x in df_playa.player.values]
+    df_playa['ganho'] = df_playa['ganho'].round(2)
+    df_playa['saldo'] = df_playa['saldo'].round(2)
     df_playa = df_playa[['id_jogo'
                          , 'id_player'
                          , 'player'
