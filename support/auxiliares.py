@@ -8,6 +8,7 @@ import datetime as dt
 import streamlit as st
 from google.oauth2 import service_account
 from google.cloud import firestore
+import pytz
 
 from support.gcp_config import Database
 
@@ -506,6 +507,8 @@ def playa_table(dia):
 
     return df_playa
 
+def get_brasil_time():
+    return dt.datetime.now(pytz.timezone('America/Sao_Paulo'))
 
 def save_game_to_cloud():
     """
