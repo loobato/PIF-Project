@@ -27,9 +27,21 @@ def end_game():
 
             st.text_input(
                 "nome_do_jogo"
-                , value=f"*PIF Millions {st.session_state[f'game']['fichas']}k - {dia}*"
+                , value=f"PIF Millions {st.session_state[f'game']['fichas']}k - {dia}"
                 , key='nome_jogo'
                 , label_visibility='hidden')
+
+            st.button("Salvar nome do jogo"
+                        , key='save_game_name'
+                        , disabled=True # ARRUMAR O UPDATE E TIRAR ISSO
+                        )
+
+            if st.session_state['save_game_name']:                
+                aux.update_game_name(
+                    st.session_state['game']['id_jogo']
+                    , st.session_state['nome_jogo']
+                    )                
+                st.session_state['save_game_name'] = False
             
             st.markdown("""
                         <style>
@@ -70,18 +82,18 @@ def end_game():
         st.balloons()
 
     #######################################
-    game_data = aux.prepare_for_firestore(aux.game_table(dia, comeco, fim, tempo, buyin, fichas_iniciais))
-    playa_data = aux.prepare_for_firestore(aux.playa_table(dia))
+    game_data = aux.game_table(dia, comeco, fim, tempo, buyin, fichas_iniciais)
+    playa_data = aux.playa_table(dia)
 
     # st.write(game_data)
     # st.write(playa_data)
 
-    # SALVA O JOGO NO BANCO - AVALIAR MUDAR PRA SALVAR NO BQ]
-    # TEM QUE TIRAR DAQUI PARA CONTEMPLAR O NOME DO JOGO
-    aux.save_game_to_firestore(str(st.session_state[f'game']['id_jogo']), game_data, playa_data)
-    #######################################################
+    # SALVA O JOGO NO BIGQUERY (games_table + players_table) e marca jogo finalizado no Firestore
     
-    aux.set_game_finalizado_firestore()
+    if 'saved_to_bq' not in st.session_state:
+        st.session_state['saved_to_bq'] = False
+        aux.save_game_to_firestore(str(st.session_state['nome_jogo']), game_data, playa_data)
+
     # EXPANDER DOS RESULTADOS DO JOGO
     with st.expander("Resultados do Jogo"):
         st.dataframe(aux.join_tables(dia)
