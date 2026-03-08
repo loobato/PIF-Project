@@ -1,7 +1,7 @@
 2024
 .streamlit/secrets.toml
 sandbox.ipynb
-venv
+venv/
 
 # Python
 __pycache__/
@@ -9,3 +9,4 @@ __pycache__/
 *.py[cod]
 *$py.class
 support\__pycache__
+app\game\__pycache__
